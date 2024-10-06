@@ -17,24 +17,22 @@ import {
   Button,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"; // Import icon
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArsipList from "@/components/ArsipList";
 
-export default function Arsip() {
+export default function ArsipListPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [tipeSurat, setTipeSurat] = useState<string>("semua");
   const [tahun, setTahun] = useState<string>("");
   const [bulan, setBulan] = useState<string>("");
   const [tanggal, setTanggal] = useState<string>("");
 
-  // State untuk filter dropdown
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
   );
   const isFilterMenuOpen = Boolean(filterAnchorEl);
 
   const handleSearch = () => {
-    // Lakukan pencarian berdasarkan query
     console.log({ searchQuery, tipeSurat, tahun, bulan, tanggal });
   };
 
@@ -51,24 +49,37 @@ export default function Arsip() {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 11, width: { xs: "100%", md: "80%" } }}>
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", md: "row" },
           justifyContent: "space-between",
           alignItems: "center",
           mb: 2,
         }}
       >
-        {/* Tab Menu: Semua, Surat Masuk, Surat Keluar */}
-        <Tabs value={tipeSurat} onChange={handleTabChange}>
+        <Tabs
+          value={tipeSurat}
+          onChange={handleTabChange}
+          variant="scrollable"
+          sx={{ width: { xs: "100%", md: "auto" }, mb: { xs: 1, md: 0 } }}
+        >
           <Tab label="Semua" value="semua" />
           <Tab label="Surat Masuk" value="Surat Masuk" />
           <Tab label="Surat Keluar" value="Surat Keluar" />
         </Tabs>
 
-        {/* Search Bar */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mt: { xs: 2, md: 0 },
+            flexDirection: { xs: "row", md: "row" },
+            width: { xs: "100%", md: "auto" },
+          }}
+        >
           <TextField
             placeholder="Search..."
             value={searchQuery}
@@ -81,13 +92,11 @@ export default function Arsip() {
                   </IconButton>
                 </InputAdornment>
               ),
-              // disableUnderline: true,
             }}
             sx={{
-              width: "300px",
+              flexGrow: { xs: 1, md: 0 },
+              width: { xs: "100%", md: "300px" },
               height: "40px",
-              display: "flex",
-              alignItems: "center",
               borderRadius: "20px",
               backgroundColor: "#F0F0F0",
               "& .MuiOutlinedInput-root": {
@@ -101,15 +110,13 @@ export default function Arsip() {
             }}
           />
 
-          {/* Filter Button */}
           <Button
             variant="outlined"
             onClick={handleFilterClick}
             sx={{
+              width: { xs: "auto", md: "auto" },
               height: "40px",
               borderRadius: "20px",
-              display: "flex",
-              alignItems: "center",
               textTransform: "none",
             }}
             endIcon={<ArrowDropDownIcon />}
@@ -117,7 +124,6 @@ export default function Arsip() {
             Filter
           </Button>
 
-          {/* Filter Menu */}
           <Menu
             anchorEl={filterAnchorEl}
             open={isFilterMenuOpen}
@@ -129,7 +135,6 @@ export default function Arsip() {
               },
             }}
           >
-            {/* Dropdown untuk Tahun, Bulan, Tanggal */}
             <Box sx={{ p: 2 }}>
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel>Tahun</InputLabel>
@@ -207,7 +212,6 @@ export default function Arsip() {
         </Box>
       </Box>
 
-      {/* Arsip List */}
       <ArsipList
         searchQuery={searchQuery}
         tipe={tipeSurat}
