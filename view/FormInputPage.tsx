@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { IconFileText, IconFile } from "@tabler/icons-react"; // Import icons
+import { Icon } from "@iconify/react";
 
 export default function InputArsipPage() {
   const [noSurat, setNoSurat] = useState<string>("");
@@ -50,9 +51,19 @@ export default function InputArsipPage() {
 
   const renderFileIcon = () => {
     if (fileSurat?.name.endsWith(".pdf")) {
-      return <IconFile size={24} />;
+      return (
+        <Icon
+          icon="bx:bxs-file-pdf"
+          style={{ fontSize: "25px", color: "#FF0000" }}
+        />
+      );
     } else if (fileSurat?.name.endsWith(".docx")) {
-      return <IconFileText size={24} />;
+      return (
+        <Icon
+          icon="bx:bxs-file-doc"
+          style={{ fontSize: "30px", color: "#0078D4" }}
+        />
+      );
     }
     return null;
   };
