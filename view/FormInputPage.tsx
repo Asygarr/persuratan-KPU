@@ -12,31 +12,69 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { IconFileText, IconFile } from "@tabler/icons-react"; // Import icons
 import { Icon } from "@iconify/react";
 
-export default function InputArsipPage() {
-  const [noSurat, setNoSurat] = useState<string>("");
-  const [tipeSurat, setTipeSurat] = useState<string>("");
-  const [namaFile, setNamaFile] = useState<string>(""); // Nama file opsional
-  const [fileSurat, setFileSurat] = useState<File | null>(null);
-  const [dragOver, setDragOver] = useState<boolean>(false);
+interface ArsipData {
+  nomorSurat: string;
+  jenisSurat: string;
+  fileName: string;
+  file: File | null;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ noSurat, tipeSurat, namaFile, fileSurat });
-    // Simpan ke fake database (state atau array)
+export default function InputArsipPage() {
+  const [nomorSurat, setNomorSurat] = useState<string>("");
+  const [jenisSurat, setJenisSurat] = useState<string>("");
+  const [fileName, setFileName] = useState<string>(""); // Optional file name
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState<boolean>(false);
+  const [dataUpload, setDataUpload] = useState<ArsipData[]>([]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!nomorSurat || !jenisSurat || !file) {
+      console.log("Please fill in all fields and upload a file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("nomorSurat", nomorSurat);
+    formData.append("jenisSurat", jenisSurat);
+    formData.append("namaFile", fileName);
+    formData.append("file", file as File);
+
+    try {
+      const response = await fetch("http://localhost:8000", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setDataUpload(data);
+      // Reset form state after successful upload
+      setNomorSurat("");
+      setJenisSurat("");
+      setFileName("");
+      setFile(null);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFileSurat(file);
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
   };
 
   const handleFileDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0] || null;
-    setFileSurat(file);
+    const droppedFile = e.dataTransfer.files?.[0] || null;
+    setFile(droppedFile);
     setDragOver(false);
   };
 
@@ -50,20 +88,22 @@ export default function InputArsipPage() {
   };
 
   const renderFileIcon = () => {
-    if (fileSurat?.name.endsWith(".pdf")) {
-      return (
-        <Icon
-          icon="bx:bxs-file-pdf"
-          style={{ fontSize: "25px", color: "#FF0000" }}
-        />
-      );
-    } else if (fileSurat?.name.endsWith(".docx")) {
-      return (
-        <Icon
-          icon="bx:bxs-file-doc"
-          style={{ fontSize: "30px", color: "#0078D4" }}
-        />
-      );
+    if (file) {
+      if (file.name.endsWith(".pdf")) {
+        return (
+          <Icon
+            icon="bx:bxs-file-pdf"
+            style={{ fontSize: "25px", color: "#FF0000" }}
+          />
+        );
+      } else if (file.name.endsWith(".docx")) {
+        return (
+          <Icon
+            icon="bx:bxs-file-doc"
+            style={{ fontSize: "30px", color: "#0078D4" }}
+          />
+        );
+      }
     }
     return null;
   };
@@ -74,7 +114,7 @@ export default function InputArsipPage() {
         mt: 11,
         p: 2,
         maxWidth: "600px",
-        height: "550px", // Adjust height to fit new input
+        height: "550px",
         backgroundColor: "#fff",
         borderRadius: "10px",
         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
@@ -88,23 +128,23 @@ export default function InputArsipPage() {
           label="Nama File (Opsional)"
           fullWidth
           sx={{ mb: 2 }}
-          value={namaFile}
-          onChange={(e) => setNamaFile(e.target.value)}
+          value={fileName}
+          onChange={(e) => setFileName(e.target.value)}
         />
 
         <TextField
           label="No Surat"
           fullWidth
           sx={{ mb: 2 }}
-          value={noSurat}
-          onChange={(e) => setNoSurat(e.target.value)}
+          value={nomorSurat}
+          onChange={(e) => setNomorSurat(e.target.value)}
         />
 
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel>Tipe Surat</InputLabel>
           <Select
-            value={tipeSurat}
-            onChange={(e) => setTipeSurat(e.target.value as string)}
+            value={jenisSurat}
+            onChange={(e) => setJenisSurat(e.target.value as string)}
           >
             <MenuItem value="Surat Masuk">Surat Masuk</MenuItem>
             <MenuItem value="Surat Keluar">Surat Keluar</MenuItem>
@@ -138,11 +178,11 @@ export default function InputArsipPage() {
             transition: "background-color 0.3s ease",
           }}
         >
-          {fileSurat ? (
+          {file ? (
             <Box display="flex" alignItems="center" justifyContent="center">
               {renderFileIcon()}
               <Typography variant="body2" sx={{ ml: 1 }}>
-                {fileSurat.name}
+                {file.name}
               </Typography>
             </Box>
           ) : (

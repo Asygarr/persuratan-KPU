@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -17,9 +19,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { IconFile, IconDotsVertical } from "@tabler/icons-react"; // Menggunakan Tabler Icons
-import { arsipData } from "../utils/fakeData";
-import { useState } from "react";
+import { IconDotsVertical } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 
 interface ArsipListProps {
@@ -30,6 +31,15 @@ interface ArsipListProps {
   tipe: string;
 }
 
+interface Arsip {
+  id: string;
+  fileId: string;
+  fileName: string;
+  nomorSurat: string;
+  jenisSurat: string;
+  createdAt: string;
+}
+
 export default function ArsipList({
   searchQuery,
   tahun,
@@ -38,13 +48,24 @@ export default function ArsipList({
   tipe,
 }: ArsipListProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedArsip, setSelectedArsip] = useState<number | null>(null);
+  const [selectedArsip, setSelectedArsip] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [email, setEmail] = useState("");
+  const [dataSurat, setDataSurat] = useState<Arsip[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("http://192.168.50.40:8000/allFIles");
+      const data: Arsip[] = await response.json();
+      setDataSurat(data);
+    };
+
+    fetchData();
+  }, []);
 
   const handleMenuClick = (
     event: React.MouseEvent<HTMLElement>,
-    id: number
+    id: string
   ) => {
     setAnchorEl(event.currentTarget);
     setSelectedArsip(id);
@@ -63,22 +84,19 @@ export default function ArsipList({
     setOpenDialog(false);
   };
 
-  const handleDelete = (id: number) => {
-    // Placeholder untuk delete, nanti bisa ditambahkan logic penghapusan
+  const handleDelete = (id: string) => {
     console.log(`Hapus arsip dengan id: ${id}`);
   };
 
-  const filteredArsip = arsipData
+  const filteredArsip = dataSurat
     .filter((arsip) => {
       const matchesSearch =
         searchQuery === "" ||
         arsip.fileName.includes(searchQuery) ||
         arsip.nomorSurat.includes(searchQuery);
-      const matchesYear = tahun === "" || arsip.uploadDate.startsWith(tahun);
-      const matchesMonth =
-        bulan === "" || arsip.uploadDate.includes(`-${bulan}-`);
-      const matchesDate =
-        tanggal === "" || arsip.uploadDate.endsWith(`-${tanggal}`);
+      const matchesYear = tahun === "" || arsip.createdAt.startsWith(tahun);
+      const matchesMonth = bulan === "" || arsip.createdAt.includes(`-${bulan}-`);
+      const matchesDate = tanggal === "" || arsip.createdAt.endsWith(`-${tanggal}`);
       const matchesTipe = tipe === "semua" || arsip.jenisSurat === tipe;
       return (
         matchesSearch &&
@@ -89,8 +107,8 @@ export default function ArsipList({
       );
     })
     .sort((a, b) => {
-      const dateA = new Date(a.uploadDate);
-      const dateB = new Date(b.uploadDate);
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
       return dateB.getTime() - dateA.getTime();
     });
 
@@ -127,11 +145,6 @@ export default function ArsipList({
                       height: "1.5rem",
                     }}
                   >
-                    {/* <Icon
-                      icon="bx:bxs-file-doc"
-                      style={{ fontSize: "30px", color: "#0078D4" }}
-                    /> */}
-                    {/* pdf */}
                     <Icon
                       icon="bx:bxs-file-pdf"
                       style={{ fontSize: "25px", color: "#FF0000" }}
@@ -161,15 +174,9 @@ export default function ArsipList({
                 </span>
               </TableCell>
               <TableCell style={{ width: "9rem", textAlign: "center" }}>
-                {arsip.uploadDate}
+                {arsip.createdAt}
               </TableCell>
               <TableCell style={{ width: "80px", textAlign: "center" }}>
-                {/* <IconButton
-                  onClick={() => handleDelete(arsip.id)}
-                  sx={{ color: "#F44336" }}
-                >
-                  <IconTrash />
-                </IconButton> */}
                 <IconButton onClick={(e) => handleMenuClick(e, arsip.id)}>
                   <IconDotsVertical />
                 </IconButton>
@@ -181,7 +188,7 @@ export default function ArsipList({
                   <MenuItem onClick={handleSharedFileClick}>
                     Shared file
                   </MenuItem>
-                  <MenuItem onClick={(e) => handleDelete(arsip.id)}>
+                  <MenuItem onClick={() => handleDelete(arsip.id)}>
                     Delete
                   </MenuItem>
                 </Menu>
@@ -191,7 +198,6 @@ export default function ArsipList({
         </TableBody>
       </Table>
 
-      {/* Pop-up dialog untuk shared file */}
       <Dialog
         open={openDialog}
         onClose={handleDialogClose}
