@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   Button,
@@ -22,10 +22,18 @@ const UploadForm: React.FC = () => {
   const [tanggalDibuat, setTanggalDibuat] = useState("");
   const [isUploaded, setIsUploaded] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(""); // Clear any previous error message
     if (e.target.files) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      if (selectedFile.type !== "application/pdf") {
+        setError("Hanya file PDF yang diizinkan.");
+        setFile(null);
+        return;
+      }
+      setFile(selectedFile);
       setIsUploaded(false);
       setUploadSuccess(false);
     }
@@ -56,6 +64,10 @@ const UploadForm: React.FC = () => {
       console.log("File uploaded successfully:", data);
       setIsUploaded(true);
       setUploadSuccess(true);
+
+      setTimeout(() => {
+        setUploadSuccess(false);
+      }, 3000);
     } catch (error) {
       console.error("Error uploading file:", error);
       setUploadSuccess(false);
@@ -79,6 +91,7 @@ const UploadForm: React.FC = () => {
               onChange={handleFileChange}
               required
               style={{ display: "none" }}
+              accept="application/pdf"
             />
             <label htmlFor="file">
               <Button variant="contained" component="span" color="primary">
@@ -93,8 +106,12 @@ const UploadForm: React.FC = () => {
                 {file.name}
               </Typography>
             )}
-            {isUploaded && file && file.name.endsWith(".pdf")}
           </Grid>
+          {error && (
+            <Grid item xs={12}>
+              <Alert severity="error">{error}</Alert>
+            </Grid>
+          )}
           <Grid item xs={12}>
             <TextField
               label="File Name"
