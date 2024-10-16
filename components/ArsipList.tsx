@@ -31,6 +31,7 @@ interface ArsipListProps {
   bulan: string;
   tanggal: string;
   tipe: string;
+  filterType: string;
 }
 
 interface Arsip {
@@ -49,10 +50,11 @@ export default function ArsipList({
   bulan,
   tanggal,
   tipe,
+  filterType,
 }: ArsipListProps) {
   // Menu for each file
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedArsip, setSelectedArsip] = useState<string | null>(null);
+  const [selectedArsip, setSelectedArsip] = useState<string>("");
   const [openDialog, setOpenDialog] = useState(false);
 
   // Data for sharing file
@@ -157,18 +159,27 @@ export default function ArsipList({
     setOpenAlert(false);
   };
 
+  console.log({ searchQuery, tahun, bulan, tanggal, tipe });
+
   const filteredArsip = dataSurat
     .filter((arsip) => {
       const matchesSearch =
         searchQuery === "" ||
         arsip.fileName.includes(searchQuery) ||
         arsip.nomorSurat.includes(searchQuery);
-      const matchesYear = tahun === "" || arsip.tanggalDibuat.startsWith(tahun);
-      const matchesMonth =
-        bulan === "" || arsip.tanggalDibuat.includes(`-${bulan}-`);
+
+      // Memilih field berdasarkan nilai filterType
+      const dateField =
+        filterType === "dibuat" ? arsip.tanggalDibuat : arsip.createdAt;
+
+      const matchesYear = tahun === "" || dateField.startsWith(tahun);
+      const matchesMonth = bulan === "" || dateField.includes(`-${bulan}-`);
       const matchesDate =
-        tanggal === "" || arsip.tanggalDibuat.endsWith(`-${tanggal}`);
+        tanggal === "" ||
+        new Date(dateField).toISOString().split("T")[0].endsWith(`-${tanggal}`);
+
       const matchesTipe = tipe === "semua" || arsip.jenisSurat === tipe;
+
       return (
         matchesSearch &&
         matchesYear &&
@@ -192,9 +203,8 @@ export default function ArsipList({
               <TableCell>Nama File</TableCell>
               <TableCell>No Surat</TableCell>
               <TableCell>Tipe Surat</TableCell>
-              <TableCell style={{ width: "9rem", textAlign: "center" }}>
-                Tanggal
-              </TableCell>
+              <TableCell>Tanggal Surat Dibuat</TableCell>
+              <TableCell>Tanggal Masuk/Keluar</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
@@ -203,8 +213,7 @@ export default function ArsipList({
               <TableRow key={arsip.id}>
                 <TableCell
                   style={{
-                    display: "flex",
-                    alignItems: "center",
+                    verticalAlign: "middle",
                     cursor: "pointer",
                   }}
                   onClick={() =>
@@ -217,25 +226,32 @@ export default function ArsipList({
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "center",
                       alignItems: "center",
-                      width: "auto",
-                      marginRight: "10px",
                     }}
                   >
                     <div
                       style={{
-                        width: "1.5rem",
-                        height: "1.5rem",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        width: "auto",
+                        marginRight: "10px",
                       }}
                     >
-                      <Icon
-                        icon="bx:bxs-file-pdf"
-                        style={{ fontSize: "25px", color: "#FF0000" }}
-                      />
+                      <div
+                        style={{
+                          width: "1.5rem",
+                          height: "1.5rem",
+                        }}
+                      >
+                        <Icon
+                          icon="bx:bxs-file-pdf"
+                          style={{ fontSize: "25px", color: "#FF0000" }}
+                        />
+                      </div>
                     </div>
+                    {arsip.fileName}
                   </div>
-                  {arsip.fileName}
                 </TableCell>
                 <TableCell>{arsip.nomorSurat}</TableCell>
                 <TableCell>
@@ -259,6 +275,9 @@ export default function ArsipList({
                 </TableCell>
                 <TableCell style={{ width: "9rem", textAlign: "center" }}>
                   {new Date(arsip.tanggalDibuat).toISOString().split("T")[0]}
+                </TableCell>
+                <TableCell style={{ width: "9rem", textAlign: "center" }}>
+                  {new Date(arsip.createdAt).toISOString().split("T")[0]}
                 </TableCell>
                 <TableCell style={{ width: "80px", textAlign: "center" }}>
                   <IconButton onClick={(e) => handleMenuClick(e, arsip.fileId)}>
